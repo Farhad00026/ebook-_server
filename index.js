@@ -15,7 +15,7 @@ const PORT = process.env.PORT;
 app.use(
   cors({
     credentials: true,
-    origin: [process.env.CLIENT_URL],
+    origin: [process.env.NEXT_CLIENT_URL],
   }),
 );
 app.use(express.json());
@@ -51,4 +51,3 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
