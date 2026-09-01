@@ -27,7 +27,7 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
-vv
+
 async function run() {
   try {
     // await client.connect();
@@ -51,3 +51,5 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+gfg
