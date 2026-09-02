@@ -32,6 +32,12 @@ async function run() {
   try {
     // await client.connect();
     const db = client.db("ebookdb");
+    const ebookcollection = db.collection("ebookdb");
+    //get api with limit
+    app.get("/api/ebook", async (req, res) => {
+      const result = await ebookcollection.find().toArray();
+      res.send(result);
+    });
 
     // await client.db("admin").command({ ping: 1 });
     console.log(
@@ -51,4 +57,3 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-sss
