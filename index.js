@@ -33,6 +33,7 @@ async function run() {
     // await client.connect();
     const db = client.db("ebookdb");
     const ebookcollection = db.collection("ebookdb");
+    const paymentcollection = db.collection("payment");
     //get api with limit
     app.get("/limit/ebook", async (req, res) => {
       const result = await ebookcollection.find().limit(8).toArray();
@@ -57,6 +58,29 @@ async function run() {
         res.status(500).send({
           message: "Failed to fetch ebook",
         });
+      }
+    });
+    //POST API for Payment info
+    app.post("/payment", async (req, res) => {
+      try {
+        const { sessionId, userId, productId, title, price } = req.body;
+        const userObjectId = new ObjectId(userId);
+
+        const paymentResult = await paymentcollection.insertOne({
+          userId: userObjectId,
+          sessionId,
+          productId,
+          title,
+          price: Number(price),
+        });
+
+        res.status(200).json({
+          message: "Subscription created successfully",
+          paymentResult,
+        });
+      } catch (error) {
+        console.error("Subscription error:", error);
+        res.status(500).json({ message: "Failed to create subscription" });
       }
     });
 
