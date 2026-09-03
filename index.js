@@ -34,8 +34,8 @@ async function run() {
     const db = client.db("ebookdb");
     const ebookcollection = db.collection("ebookdb");
     //get api with limit
-    app.get("/api/ebook", async (req, res) => {
-      const result = await ebookcollection.find().toArray();
+    app.get("/limit/ebook", async (req, res) => {
+      const result = await ebookcollection.find().limit(8).toArray();
       res.send(result);
     });
 
