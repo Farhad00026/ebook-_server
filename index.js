@@ -38,6 +38,27 @@ async function run() {
       const result = await ebookcollection.find().limit(8).toArray();
       res.send(result);
     });
+    //GET API for single card view
+    app.get("/ebook/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const query = {
+          _id: new ObjectId(id),
+        };
+        const result = await ebookcollection.findOne(query);
+        if (!result) {
+          return res.status(404).send({
+            message: "Ebook not found",
+          });
+        }
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({
+          message: "Failed to fetch ebook",
+        });
+      }
+    });
 
     // await client.db("admin").command({ ping: 1 });
     console.log(
