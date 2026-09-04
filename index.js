@@ -130,6 +130,20 @@ async function run() {
         });
       }
     });
+    //api for search and get product
+    app.get("/search/ebook", async (req, res) => {
+      const { search } = req.query;
+      const query = {};
+
+      if (search && search != "undefined") {
+        query.$or = [
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ];
+      }
+      const result = await ebookcollection.find(query).toArray();
+      res.send(result);
+    });
 
     // await client.db("admin").command({ ping: 1 });
     console.log(
