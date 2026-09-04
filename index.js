@@ -6,7 +6,8 @@ const dontenv = require("dotenv");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 dontenv.config();
-
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
+const { fileURLToPathBuffer } = require("node:url");
 const uri = process.env.MONGODB_URI;
 
 const app = express();
@@ -27,6 +28,32 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.NEXT_CLIENT_SIDE_URI}/api/auth/jwks`),
+);
+
+// Fixed: correct casing, awaited jwtVerify, async middleware
+const verifyToken = async (req, res, next) => {
+  const authHeader = req?.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: "Authorization header missing" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Token missing" });
+  }
+
+  try {
+    const { payload } = await jwtVerify(token, JWKS);
+    req.user = payload; // available to downstream routes
+    console.log(payload);
+    next();
+  } catch (error) {
+    console.error("JWT verify error:", error.message);
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
+};
 
 async function run() {
   try {
@@ -141,8 +168,43 @@ async function run() {
           { description: { $regex: search, $options: "i" } },
         ];
       }
-      const result = await ebookcollection.find(query).toArray();
+      const result = await ebookcollection.find(query).limit(8).toArray();
       res.send(result);
+    });
+
+    //Api for pagination
+    app.get("/pagination/ebook", async (req, res) => {
+      try {
+        const limit = parseInt(req.query.limit) || 8;
+        const page = parseInt(req.query.page) || 1;
+
+        const skip = (page - 1) * limit;
+
+        const total_product = await ebookcollection.countDocuments();
+
+        const total_pages = Math.ceil(total_product / limit);
+
+        const result = await ebookcollection
+          .find()
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        res.send({
+          result,
+          total_product,
+          total_pages,
+          limit,
+          page,
+          skip,
+        });
+      } catch (error) {
+        console.error("Pagination error:", error);
+
+        res.status(500).send({
+          message: "Failed to fetch products",
+        });
+      }
     });
 
     // await client.db("admin").command({ ping: 1 });
@@ -163,3 +225,4 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+fileURLToPathBuffer;
