@@ -34,6 +34,7 @@ async function run() {
     const db = client.db("ebookdb");
     const ebookcollection = db.collection("ebookdb");
     const paymentcollection = db.collection("payment");
+    const usercollection = db.collection("user");
     //get api with limit
     app.get("/limit/ebook", async (req, res) => {
       const result = await ebookcollection.find().limit(8).toArray();
@@ -81,6 +82,52 @@ async function run() {
       } catch (error) {
         console.error("Subscription error:", error);
         res.status(500).json({ message: "Failed to create subscription" });
+      }
+    });
+    //get api for Admin user data
+    app.get("/admin/user", async (req, res) => {
+      try {
+        const result = await usercollection.findOne();
+        if (!result) {
+          return res.status(404).send({
+            message: "Ebook not found",
+          });
+        }
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({
+          message: "Failed to fetch ebook",
+        });
+      }
+    });
+    //get api for Admin transaction
+    app.get("/admin/ebook", async (req, res) => {
+      const result = await ebookcollection.find().toArray();
+      res.send(result);
+    });
+    // POST api for product collection
+    app.post("/products", async (req, res) => {
+      try {
+        const data = req.body;
+
+        const result = await ebookcollection.insertOne({
+          ...data,
+          price: Number(data.price),
+        });
+
+        res.status(201).json({
+          success: true,
+          message: "Product inserted successfully",
+          insertedId: result.insertedId,
+        });
+      } catch (error) {
+        console.error("Error inserting product:", error);
+
+        res.status(500).json({
+          success: false,
+          message: "Failed to insert product",
+        });
       }
     });
 
